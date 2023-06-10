@@ -1,2 +1,2 @@
 # Training-and-Testing-Data
-understanding training and testing errors, implementing sample-splitting  and trying statistical prediction methods
+This project will help us understand training and testing error, implementing sample-splitting  and trying statistical prediction methods.
