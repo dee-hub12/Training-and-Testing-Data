@@ -1,0 +1,128 @@
+library(psych)
+library(rcompanion)
+library(knitr)
+library(jtools)
+library(jtools)
+library(lmtest)
+library(leaps)
+library(tidyverse)
+library(HSAUR2)
+library(devtools)
+require(ggbiplot)
+library(MASS)
+library(tidyverse)
+library(modelr)
+library(broom)
+library(faraway)
+library(glmnet)
+library(caret)
+library(corrplot)
+library(car)
+library(olsrr)
+library(pastecs)
+library(ggplot2)
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(RcmdrMisc)
+library(knitr)
+library(tidyverse)
+library(lattice)
+library(gvlma)
+
+# Practice with training and test data
+# Plots of training and test data from a simple univariate data
+set.seed(1)
+n = 30
+hor = sort(runif(n, -3, 3))
+ver = 2*hor + 2*rnorm(n)
+hor_ = sort(runif(n, -3, 3))
+ver_ = 2*hor_ + 2*rnorm(n)
+par(mfrow=c(1,2))
+xlim <- range(c(hor,hor_))
+ylim <-range(c(ver,ver_))
+plot(hor, ver, xlim=xlim, ylim=ylim, main="Training data")
+plot(hor_, ver_, xlim=xlim, ylim=ylim, main="Testing data")
+
+## Finding the training and testing error
+myfunc<-lapply(2:14, function(daf) lm(ver~poly(hor,daf)))
+predict.daf<-function(fau){
+  rap <- predict(fau, data.frame(hor=hor))
+  return(rap)
+}
+yhat.daf<-lapply(myfunc, predict.daf)
+train.daf<-function(fau){
+  mag<-mean((ver-fau)^2)
+  return(mag)
+}
+error.train<-sapply(yhat.daf,train.daf)
+error.train
+
+
+# Sample splitting with the prostate cancer data
+dat <-read.table("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/prostate.data")
+
+# Split the data into training and testing data, fitting a linear model and finding the test error.
+train<-dat[dat$train=="TRUE",]
+test<-dat[dat$train=="FALSE",]
+lm.train<-lm(lpsa~lcavol+lweight,data = train)
+tap.1<- predict(lm.train,data.frame(lcavol=train$lcavol,lweight=train$lweight))
+train_error <- mean((train$lpsa-tap.1)^2)
+tap.2 <- predict(lm.train,data.frame(lcavol=test$lcavol,lweight=test$lweight))
+test_error.1<- mean((test$lpsa-tap.2)^2)
+test_error.1
+
+# Plot the training dataset using a feature plot to see all variables plotted against each other.
+inTrain <- createDataPartition(y=dat$lpsa, p=0.7, list=FALSE)
+training <- dat[inTrain,]
+testing <- dat[-inTrain,]
+dim(training)
+library(caret)
+featurePlot(x=training[,c("lcavol", "lweight", "age","gleason","pgg45")],y=training$lpsa, plot="pairs")
+
+# fit a linear model on the training set lpsa on age, gleason, and pgg45 and finding the test error
+lm.pred<-lm(lpsa~age+gleason+pgg45,data = train)
+pred<- predict(lm.pred,data.frame(age=train$age,gleason=train$gleason,pgg45<-train$pgg45))
+error_pred <-mean((train$lpsa-pred)^2)
+wab <- predict(lm.pred,data.frame(age=test$age,gleason=test$gleason,pgg45<-test$pgg45))
+test_error.2<- mean((test$lpsa-wab)^2)
+test_error.2
+
+the test error of the first model is lower than the second one, Hence it is advisable to choose the first 
+
+#Split the wage data randomly into training and test sets of roughly equal size
+library(ISLR)
+library(ggplot2)
+library(caret)
+data("Wage")
+set.seed(1)
+n <-sample(rep(1:2, length=nrow(Wage)))
+wage_train <- Wage[n==1,]
+wage_test <-Wage[n==2,]
+nrow(wage_train)
+
+nrow(wage_test)
+
+# Plot the training dataset using a feature plot to see all variables plotted against each other.
+inTrain.2 <- createDataPartition(y=Wage$wage, p=0.9, list=FALSE)
+training.2<- Wage[inTrain,]
+testing.2 <- Wage[-inTrain,]
+dim(training)
+featurePlot(x=training.2[,c("year", "age", "education")],y=training.2$wage, plot="pairs")
+
+#Plot the training dataset using a qplot with color.
+qplot(age, wage, color=year, data=training.2)
+qq <- qplot(age, wage, color=education, data=training.2)
+qq + geom_smooth(method="lm", formula = y ~ x)
+
+#Fitting two models (linear and additive) on the training part of the wage data and comparing them  
+wage_train_lm<-lm(wage~year+age+education,data = wage_train)
+kab<- predict(wage_train_lm,data.frame(year=wage_test$year,age=wage_test$age,education=wage_test$education))
+wage_error.1<- mean((wage_test$wage-kab)^2)
+wage_error.1
+
+library(gam)
+train_gam<-gam(wage~year+s(age)+education, data = wage_train)
+rast<-predict(train_gam,data.frame(year=wage_test$year,age=wage_test$age,education <-wage_test$education))
+wage_error.2<- mean((wage_test$wage-rast)^2)
+wage_error.2
